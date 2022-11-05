@@ -6,6 +6,7 @@ import "./Coin.sol";
 import "./PriceConsumerV3.sol";
 import "./MockOracle.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../Dbank.sol";
 // import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Vault is IVault, Ownable {
@@ -13,11 +14,17 @@ contract Vault is IVault, Ownable {
     mapping (address => Vault) vaults;
     StableCoinToken public token;
     PriceConsumerV3 private oracle;
+    uint256 public rate;
+    //Dbank public dbank;
     // using SafeMath for uint256;
 
     constructor(StableCoinToken _token, PriceConsumerV3 _oracle){
         token = _token;
         oracle = _oracle;
+    }
+
+    function setInterest(uint256 _rate) external{
+        rate = _rate;
     }
 
     /**
@@ -26,20 +33,31 @@ contract Vault is IVault, Ownable {
      */
     function deposit(uint256 amountToDeposit) override payable external {
         require(amountToDeposit == msg.value, "incorrect ETH amount");
-        uint256 amountToMint = amountToDeposit * getEthUSDPrice();
+        uint256 amountToMint = amountToDeposit * getEthUSDPrice()/2;
         token.mint(msg.sender, amountToMint);
         vaults[msg.sender].collateralAmount += amountToDeposit;
-        vaults[msg.sender].debtAmount += amountToMint;
+        vaults[msg.sender].debtAmount += amountToMint*(1+rate/100)*block.timestamp/31536000;
         emit Deposit(amountToDeposit, amountToMint);
     }
     
-    /**
+    function buy(uint256 val) payable external{
+        require(val == msg.value, "Incorrect Amount");
+        token.mint(msg.sender, val*getEthUSDPrice());
+    }
+
+    function send(uint256 val, address reciever) payable external{
+        token.burn(msg.sender, val);
+        token.mint(reciever, val);
+    }
+
+    /** 
     @notice Allows a user to withdraw up to 100% of the collateral they have on deposit
     @dev This cannot allow a user to withdraw more than they put in
     @param repaymentAmount  the amount of stablecoin that a user is repaying to redeem their collateral for.
      */
     function withdraw(uint256 repaymentAmount) override external {
-        require(repaymentAmount <= vaults[msg.sender].debtAmount, "withdraw limit exceeded"); 
+        require(vaults[msg.sender].debtAmount < 9*vaults[msg.sender].collateralAmount/10, "withdrawl time over");
+        require(repaymentAmount <= vaults[msg.sender].debtAmount*63072000/(1+rate/100)*block.timestamp, "withdraw limit exceeded"); 
         require(token.balanceOf(msg.sender) >= repaymentAmount, "not enough tokens in balance");
         uint256 amountToWithdraw = repaymentAmount / getEthUSDPrice();
         token.burn(msg.sender, repaymentAmount);
