@@ -3,40 +3,21 @@ pragma solidity ^0.8.0;
 
 import './implementations/Vault.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
+import './Store.sol';
 
-contract Store{
-    struct status{
-        bool kyc;
-        bool blacklist;
-    }
-    mapping (address => status) public users;
-    address payable[] public banks;
-}
-contract DbankFactory is Store{
-    address private owner;  
-
-    modifier restrict{
-        require(msg.sender == owner, "Only accesible to owner");
-        _;
-    }
-
-    constructor(){
-        owner = msg.sender;
-    }
-
-    function addBank(uint rate, address bankId) public restrict{
-        address bank = address(new Dbank(rate, bankId));
-        banks.push(payable((bank)));
-    }
-
-    function getBankList() public view returns(address payable[] memory){
-        return banks;
-    }
-}
 
 contract Dbank is Store, Ownable{
     address public bank;
     Vault public vault;
+    struct LoanTaken{
+        address from;
+        address to;
+        uint256 rate;
+        uint256 loanTaken;
+        uint256 repaymentLeft;
+    }
+    LoanTaken[] public loans;
+    //mapping(address => LoanTaken) loans;
 
     modifier restricted {
         require(msg.sender == bank, "Only approved by bank");
@@ -60,10 +41,23 @@ contract Dbank is Store, Ownable{
 
     function takeLoan(uint256 _collateral) public payable auth{
         vault.deposit(_collateral);
+        //emit LoanTaken(bank, msg.sender,vault.rate(), _collateral/2, _collateral/2);
+        LoanTaken storage loan = loans.push();
+        loan.from = bank;
+        loan.to = msg.sender;
+        loan.rate = vault.rate();
+        loan.loanTaken = _collateral/2;
+        loan.repaymentLeft = _collateral/2;
     }
 
     function repay(uint256 _repayment) public payable{
         vault.withdraw(_repayment);
+        for(uint256 i = 0; i<loans.length; i++){
+            if(loans[i].to == msg.sender){
+                loans[i].repaymentLeft -= _repayment;
+            }
+        }
+        //loans[index].repaymentLeft -= _repayment;
     }
 
     function buy(uint256 _amount) public payable auth{
