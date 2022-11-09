@@ -75,11 +75,11 @@ contract Dbank is Store,Ownable{
         //payable(bank).transferFrom(vault.vaults[msg.sender], 2*loans[_user].loanTaken);
     }
 
-    function buy(uint256 _amount) public payable auth{
+    function _buy(uint256 _amount) public payable auth{
         vault.buy(_amount);
     }
 
-    function send(uint256 _pay, address reciever) public payable auth{
+    function _send(uint256 _pay, address reciever) public payable auth{
         require(users[reciever].kyc == true, "User not found");
         vault.send(_pay, reciever);
     }
