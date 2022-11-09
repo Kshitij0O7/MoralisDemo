@@ -9,6 +9,7 @@ import './interfaces/IVault.sol';
 contract Dbank is Store,Ownable{
     address public bank;
     Vault public vault;
+    uint256 public rate;
     struct LoanTaken{
         address from;
         uint256 rate;
@@ -36,23 +37,24 @@ contract Dbank is Store,Ownable{
         _;
     }
     
-    constructor(uint256 rate, address _bank){
+    constructor(uint256 _rate, address _bank){
         bank = _bank;
-        vault.setInterest(rate);
+        rate = _rate;
     }
 
-    function addUser(address payable _user) public restricted{
-        users[_user].kyc = true;
-        users[_user].blacklist = false;
+    // function addUser(address payable _user) public restricted{
+    //     users[_user].kyc = true;
+    //     users[_user].blacklist = false;
         
-    }
+    // }
 
     function takeLoan(uint256 _collateral) public payable auth{
+        vault.setInterest(rate);
         vault.deposit(_collateral);
         loans[msg.sender] = LoanTaken(
-            bank, vault.rate(), _collateral/2, _collateral*(1+vault.rate()/100)*block.timestamp/31536000
+            bank, rate, _collateral/2, _collateral*(1 + rate/100)*block.timestamp/31536000
         );
-        emit Loan(bank, msg.sender,vault.rate(), _collateral/2, _collateral/2);
+        emit Loan(bank, msg.sender, rate, _collateral/2, _collateral/2);
     }
 
     function repay(uint256 _repayment,address _user) public payable auth{
@@ -60,7 +62,7 @@ contract Dbank is Store,Ownable{
         loans[msg.sender].repaymentLeft -= _repayment;
         emit Loan(bank,
         msg.sender,
-        vault.rate(),
+        rate,
         loans[msg.sender].loanTaken,
         loans[msg.sender].repaymentLeft
         );

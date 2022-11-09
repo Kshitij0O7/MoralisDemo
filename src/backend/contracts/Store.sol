@@ -7,5 +7,5 @@ contract Store{
         bool blacklist;
     }
     mapping (address => status) public users;
-    address payable[] public banks;
+    address[] public banks;
 }

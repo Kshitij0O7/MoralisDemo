@@ -5,7 +5,7 @@ import './Store.sol';
 import './Dbank.sol';
 
 contract DbankFactory is Store{
-    address private owner;  
+    address public owner;
 
     modifier restrict{
         require(msg.sender == owner, "Only accesible to owner");
@@ -16,9 +16,9 @@ contract DbankFactory is Store{
         owner = msg.sender;
     }
 
-    function addBank(uint rate, address bankId) public restrict{
+    function addBank(uint rate, address bankId) public{
         address bank = address(new Dbank(rate, bankId));
-        banks.push(payable((bank)));
+        banks.push(bankId);
     }
 
     function addUser(address payable _user) public restrict{
@@ -26,7 +26,7 @@ contract DbankFactory is Store{
         users[_user].blacklist = false;
     }
 
-    function getBankList() public view returns(address payable[] memory){
+    function getBankList() public view returns(address[] memory){
         return banks;
     }
 }

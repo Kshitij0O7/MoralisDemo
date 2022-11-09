@@ -11,13 +11,17 @@ async function main() {
     const dbankFactory = await DbankFactory.deploy();
     const Storage = await ethers.getContractFactory("Store");
     const storage = await Storage.deploy();
+    const Dbank = await ethers.getContractFactory("Dbank");
+    const dbank = await Dbank.deploy(2, '0x61A9d45a1B9bC1A14103F07B80b729A23d8C3a21')
   
     console.log("Bank Factory Contract Address is:", dbankFactory.address);
     console.log("Storage Contract Address is:", storage.address);
+    console.log("Bank Contract Address is:", dbank.address);
   
     // For each contract, pass the deployed contract and name to this function to save a copy of the contract ABI and address to the front end.
     saveFrontendFiles(dbankFactory, "DbankFactory");
     saveFrontendFiles(storage, "Store");
+    saveFrontendFiles(dbank, "Dbank")
   }
   
   function saveFrontendFiles(contract, name) {
