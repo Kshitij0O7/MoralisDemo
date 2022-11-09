@@ -1,4 +1,3 @@
-// import { getBankList } from "../../../../backend/contracts/Dbank.sol"
 import { Header, Footer } from '../src/components/modules';
 export default function RequestLoan() {
   return (
