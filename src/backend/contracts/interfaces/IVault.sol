@@ -28,7 +28,7 @@ interface IVault {
     @dev This cannot allow a user to withdraw more than they put in
     @param repaymentAmount  the amount of stablecoin that a user is repaying to redeem their collateral for.
      */
-    function withdraw(uint256 repaymentAmount) external;
+    function withdraw(uint256 repaymentAmount, address _user) external;
     
     /**
     @notice Returns the details of a vault

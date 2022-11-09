@@ -4,19 +4,26 @@ pragma solidity ^0.8.0;
 import './implementations/Vault.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 import './Store.sol';
+import './interfaces/IVault.sol';
 
-
-contract Dbank is Store, Ownable{
+contract Dbank is Store,Ownable{
     address public bank;
     Vault public vault;
     struct LoanTaken{
         address from;
-        address to;
         uint256 rate;
         uint256 loanTaken;
         uint256 repaymentLeft;
     }
-    LoanTaken[] public loans;
+    event Loan(
+        address indexed from,
+        address indexed to,
+        uint256 rate,
+        uint256 loanTaken,
+        uint256 repaymentLeft
+    );
+    //LoanTaken[] public loans;
+    mapping(address => LoanTaken) loans;
     //mapping(address => LoanTaken) loans;
 
     modifier restricted {
@@ -24,7 +31,7 @@ contract Dbank is Store, Ownable{
         _;
     }
     modifier auth{
-        require(users[msg.sender].blacklist, "Blacklisted");
+        require(!users[msg.sender].blacklist, "Blacklisted");
         require(users[msg.sender].kyc, "User not found");
         _;
     }
@@ -37,27 +44,33 @@ contract Dbank is Store, Ownable{
     function addUser(address payable _user) public restricted{
         users[_user].kyc = true;
         users[_user].blacklist = false;
+        
     }
 
     function takeLoan(uint256 _collateral) public payable auth{
         vault.deposit(_collateral);
-        //emit LoanTaken(bank, msg.sender,vault.rate(), _collateral/2, _collateral/2);
-        LoanTaken storage loan = loans.push();
-        loan.from = bank;
-        loan.to = msg.sender;
-        loan.rate = vault.rate();
-        loan.loanTaken = _collateral/2;
-        loan.repaymentLeft = _collateral/2;
+        loans[msg.sender] = LoanTaken(
+            bank, vault.rate(), _collateral/2, _collateral*(1+vault.rate()/100)*block.timestamp/31536000
+        );
+        emit Loan(bank, msg.sender,vault.rate(), _collateral/2, _collateral/2);
     }
 
-    function repay(uint256 _repayment) public payable{
-        vault.withdraw(_repayment);
-        for(uint256 i = 0; i<loans.length; i++){
-            if(loans[i].to == msg.sender){
-                loans[i].repaymentLeft -= _repayment;
-            }
-        }
-        //loans[index].repaymentLeft -= _repayment;
+    function repay(uint256 _repayment,address _user) public payable auth{
+        vault.withdraw(_repayment, _user);
+        loans[msg.sender].repaymentLeft -= _repayment;
+        emit Loan(bank,
+        msg.sender,
+        vault.rate(),
+        loans[msg.sender].loanTaken,
+        loans[msg.sender].repaymentLeft
+        );
+    }
+
+    function ban(address _user) public restricted{
+        require(loans[_user].repaymentLeft >= 9*loans[_user].loanTaken/10, "User not a defaulter");
+        users[_user].blacklist = true;
+        vault.recover(bank);
+        //payable(bank).transferFrom(vault.vaults[msg.sender], 2*loans[_user].loanTaken);
     }
 
     function buy(uint256 _amount) public payable auth{

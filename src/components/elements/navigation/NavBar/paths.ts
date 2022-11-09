@@ -42,6 +42,14 @@ const NAV_LINKS: ISubNav[] = [
       },
     ],
   },
+  {
+    label: 'Request Loan',
+    href: '/requestloan'
+  },
+  {
+    label: 'Repayment',
+    href: '/repayment'
+  },
 ];
 
 export default NAV_LINKS;

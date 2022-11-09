@@ -9,7 +9,7 @@ const links = {
 
 const Footer = () => {
   return (
-    <Box textAlign={'center'} w="full" p={6}>
+    <Box textAlign={'center'} w="full" p={6} marginTop={100}>
       <Text>
         ⭐️ Please star this{' '}
         <Link href={links.github} isExternal alignItems={'center'}>

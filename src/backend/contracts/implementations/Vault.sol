@@ -39,6 +39,10 @@ contract Vault is IVault, Ownable {
         vaults[msg.sender].debtAmount += amountToMint*(1+rate/100)*block.timestamp/31536000;
         emit Deposit(amountToDeposit, amountToMint);
     }
+
+    function recover(address _bank) payable external{
+        payable(_bank).transfer(vaults[msg.sender].collateralAmount);
+    }
     
     function buy(uint256 val) payable external{
         require(val == msg.value, "Incorrect Amount");
@@ -55,15 +59,15 @@ contract Vault is IVault, Ownable {
     @dev This cannot allow a user to withdraw more than they put in
     @param repaymentAmount  the amount of stablecoin that a user is repaying to redeem their collateral for.
      */
-    function withdraw(uint256 repaymentAmount) override external {
-        require(vaults[msg.sender].debtAmount < 9*vaults[msg.sender].collateralAmount/10, "withdrawl time over");
+    function withdraw(uint256 repaymentAmount, address _user) override external {
+        //require(vaults[msg.sender].debtAmount < 9*vaults[msg.sender].collateralAmount/10, "withdrawl time over");
         require(repaymentAmount <= vaults[msg.sender].debtAmount*63072000/(1+rate/100)*block.timestamp, "withdraw limit exceeded"); 
         require(token.balanceOf(msg.sender) >= repaymentAmount, "not enough tokens in balance");
         uint256 amountToWithdraw = repaymentAmount / getEthUSDPrice();
         token.burn(msg.sender, repaymentAmount);
         vaults[msg.sender].collateralAmount -= amountToWithdraw;
         vaults[msg.sender].debtAmount -= repaymentAmount;
-        payable(msg.sender).transfer(amountToWithdraw);
+        payable(_user).transfer(amountToWithdraw);
         emit Withdraw(amountToWithdraw, repaymentAmount);
     }
 

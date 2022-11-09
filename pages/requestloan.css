@@ -1,0 +1,67 @@
+.bank-loan-details {
+    margin-top: 50px;
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    /* height: 100%; */
+    justify-content:space-around;
+}
+
+.bank-loan-detail-card {
+    display: flex;
+    flex-direction: row;
+    width: 40%;
+    height: auto;
+    justify-content: center;
+    /* border: 2px solid #fff; */
+    box-shadow: 0px 0px 5px #fff;
+    margin: 20px;
+    border-radius: 20px;
+    transition: all ease 0.2s;
+}
+
+.bank-loan-detail-card:hover {
+    /* background-color: #fff;
+    color: #000; */
+    box-shadow: 2px 2px 5px #fff;
+}
+
+.bank-card-content {
+    margin: auto;
+    flex: 2;
+    margin-left: 5%;
+}
+
+.bank-name {
+    font-size: 35px;
+}
+
+.bank-interest-rate {
+    font-size: 25px;
+}
+
+.request-loan-button {
+    padding: 20px;
+    border: 2px solid #fff;
+    border-radius: 5%;
+    transition: all ease 0.2s;
+    margin-top: 40px;
+}
+
+.request-loan-button:hover {
+    background-color: #fff;
+    color: #000;
+}
+.bank-card-logo {
+    flex: 1;
+    overflow: hidden;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.bank-card-logo img {
+    width: 100%;
+    height: 104%;
+    margin-top: -2%;
+    display: block;
+}
