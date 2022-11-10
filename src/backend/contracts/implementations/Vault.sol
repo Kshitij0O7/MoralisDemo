@@ -6,7 +6,7 @@ import "./Coin.sol";
 import "./PriceConsumerV3.sol";
 import "./MockOracle.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../Dbank.sol";
+//import "../Dbank.sol";
 // import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Vault is IVault, Ownable {
@@ -14,7 +14,7 @@ contract Vault is IVault, Ownable {
     mapping (address => Vault) vaults;
     StableCoinToken public token;
     PriceConsumerV3 private oracle;
-    uint256 public rate;
+    uint256 public _rate;
     //Dbank public dbank;
     // using SafeMath for uint256;
 
@@ -23,8 +23,8 @@ contract Vault is IVault, Ownable {
         oracle = _oracle;
     }
 
-    function setInterest(uint256 _rate) external{
-        rate = _rate;
+    function setInterest(uint256 __rate) external{
+        _rate = __rate;
     }
 
     /**
@@ -36,20 +36,20 @@ contract Vault is IVault, Ownable {
         uint256 amountToMint = amountToDeposit * getEthUSDPrice()/2;
         token.mint(msg.sender, amountToMint);
         vaults[msg.sender].collateralAmount += amountToDeposit;
-        vaults[msg.sender].debtAmount += amountToMint*(1+rate/100)*block.timestamp/31536000;
+        vaults[msg.sender].debtAmount += amountToMint*(1+_rate/100)*block.timestamp/31536000;
         emit Deposit(amountToDeposit, amountToMint);
     }
 
-    function recover(address _bank) payable external{
+    function recover(address _bank) external{
         payable(_bank).transfer(vaults[msg.sender].collateralAmount);
     }
     
-    function buy(uint256 val) payable external{
+    function buy(uint256 val) external payable{
         require(val == msg.value, "Incorrect Amount");
         token.mint(msg.sender, val*getEthUSDPrice());
     }
 
-    function send(uint256 val, address reciever) payable external{
+    function send(uint256 val, address reciever) external{
         token.burn(msg.sender, val);
         token.mint(reciever, val);
     }
@@ -60,8 +60,8 @@ contract Vault is IVault, Ownable {
     @param repaymentAmount  the amount of stablecoin that a user is repaying to redeem their collateral for.
      */
     function withdraw(uint256 repaymentAmount, address _user) override external {
-        //require(vaults[msg.sender].debtAmount < 9*vaults[msg.sender].collateralAmount/10, "withdrawl time over");
-        require(repaymentAmount <= vaults[msg.sender].debtAmount*63072000/(1+rate/100)*block.timestamp, "withdraw limit exceeded"); 
+        require(vaults[msg.sender].debtAmount < 9*vaults[msg.sender].collateralAmount/10, "withdrawl time over");
+        require(repaymentAmount <= vaults[msg.sender].debtAmount*63072000/(1+_rate/100)*block.timestamp, "withdraw limit exceeded"); 
         require(token.balanceOf(msg.sender) >= repaymentAmount, "not enough tokens in balance");
         uint256 amountToWithdraw = repaymentAmount / getEthUSDPrice();
         token.burn(msg.sender, repaymentAmount);

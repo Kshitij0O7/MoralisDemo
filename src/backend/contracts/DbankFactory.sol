@@ -18,7 +18,7 @@ contract DbankFactory is Store{
 
     function addBank(uint rate, address bankId) public{
         address bank = address(new Dbank(rate, bankId));
-        banks.push(bankId);
+        banks.push(bank);
     }
 
     function addUser(address payable _user) public restrict{

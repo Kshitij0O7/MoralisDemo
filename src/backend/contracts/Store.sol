@@ -8,4 +8,6 @@ contract Store{
     }
     mapping (address => status) public users;
     address[] public banks;
+
+    //function addBank(uint rate, address bank) external;
 }

@@ -13,10 +13,16 @@ async function main() {
     const storage = await Storage.deploy();
     const Dbank = await ethers.getContractFactory("Dbank");
     const dbank = await Dbank.deploy(2, '0x61A9d45a1B9bC1A14103F07B80b729A23d8C3a21')
+    // const Coin = await ethers.getContractFactory("Coin");
+    // const coin = await Coin.deploy("Dollar", "USD");
+    // const Oracle = await ethers.getContractFactory("PriceConsumerV3");
+    // const oracle = await Oracle.deploy();
   
     console.log("Bank Factory Contract Address is:", dbankFactory.address);
     console.log("Storage Contract Address is:", storage.address);
     console.log("Bank Contract Address is:", dbank.address);
+    // console.log("Coin Contract Address is:", coin.address);
+    // console.log("Oracle Contract Address is:", oracle.address);
   
     // For each contract, pass the deployed contract and name to this function to save a copy of the contract ABI and address to the front end.
     saveFrontendFiles(dbankFactory, "DbankFactory");
